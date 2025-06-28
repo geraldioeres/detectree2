@@ -50,6 +50,7 @@ from detectron2.utils.visualizer import ColorMode, Visualizer
 
 from detectree2.models.outputs import clean_crowns
 from detectree2.preprocessing.tiling import load_class_mapping
+from detectron2.projects import point_rend
 
 
 class FlexibleDatasetMapper(DatasetMapper):
@@ -954,7 +955,7 @@ def load_json_arr(json_path):
 
 
 def setup_cfg(
-    model_resource=True,
+    model_source="model_zoo",
     base_model: str = "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
     trains=("trees_train", ),
     tests=("trees_val", ),
@@ -980,7 +981,7 @@ def setup_cfg(
     """Set up config object # noqa: D417.
 
     Args:
-        model_resource: True if the model is from mdoel_zoo
+        model_source: model source
         base_model: base pre-trained model from detectron2 model_zoo
         trains: names of registered data to use for training
         tests: names of registered data to use for evaluating models
@@ -1017,8 +1018,12 @@ def setup_cfg(
         raise ValueError(f"Invalid resize option '{resize}'. Must be 'fixed', 'random', or 'rand_fixed'.")
 
     cfg = get_cfg()
-    if model_resource:
+    if model_source == "model_zoo":
         cfg.merge_from_file(model_zoo.get_config_file(base_model))
+    elif model_source == "point_rend":
+        point_rend.add_pointrend_config(cfg)
+        cfg.merge_from_file(base_model)
+        cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
     else:
         cfg.merge_from_file(base_model)
     cfg.DATASETS.TRAIN = trains
@@ -1037,7 +1042,10 @@ def setup_cfg(
     if update_model is not None:
         cfg.MODEL.WEIGHTS = update_model
     else:
-        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(base_model)
+        if model_source == "point_rend":
+            cfg.MODEL.WEIGHTS = "detectron2://PointRend/InstanceSegmentation/pointrend_rcnn_X_101_32x8d_FPN_3x_coco/28119989/model_final_ba17b9.pkl"
+        else:
+            cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(base_model)
 
     cfg.SOLVER.IMS_PER_BATCH = ims_per_batch
     cfg.SOLVER.BASE_LR = base_lr
