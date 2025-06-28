@@ -954,6 +954,7 @@ def load_json_arr(json_path):
 
 
 def setup_cfg(
+    model_resource=True,
     base_model: str = "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
     trains=("trees_train", ),
     tests=("trees_val", ),
@@ -979,6 +980,7 @@ def setup_cfg(
     """Set up config object # noqa: D417.
 
     Args:
+        model_resource: True if the model is from mdoel_zoo
         base_model: base pre-trained model from detectron2 model_zoo
         trains: names of registered data to use for training
         tests: names of registered data to use for evaluating models
@@ -1015,7 +1017,10 @@ def setup_cfg(
         raise ValueError(f"Invalid resize option '{resize}'. Must be 'fixed', 'random', or 'rand_fixed'.")
 
     cfg = get_cfg()
-    cfg.merge_from_file(model_zoo.get_config_file(base_model))
+    if model_resource:
+        cfg.merge_from_file(model_zoo.get_config_file(base_model))
+    else:
+        cfg.merge_from_file(base_model)
     cfg.DATASETS.TRAIN = trains
     cfg.DATASETS.TEST = tests
     cfg.DATALOADER.NUM_WORKERS = workers
