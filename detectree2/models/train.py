@@ -1024,6 +1024,7 @@ def setup_cfg(
         point_rend.add_pointrend_config(cfg)
         cfg.merge_from_file(base_model)
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+        cfg.MODEL.WEIGHTS = "detectron2://PointRend/InstanceSegmentation/pointrend_rcnn_X_101_32x8d_FPN_3x_coco/28119989/model_final_ba17b9.pkl"
     else:
         cfg.merge_from_file(base_model)
     cfg.DATASETS.TRAIN = trains
@@ -1042,15 +1043,14 @@ def setup_cfg(
     if update_model is not None:
         cfg.MODEL.WEIGHTS = update_model
     else:
-        if model_source == "point_rend":
-            cfg.MODEL.WEIGHTS = "detectron2://PointRend/InstanceSegmentation/pointrend_rcnn_X_101_32x8d_FPN_3x_coco/28119989/model_final_ba17b9.pkl"
-        else:
+        if model_source != "point_rend":
             cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(base_model)
 
     cfg.SOLVER.IMS_PER_BATCH = ims_per_batch
     cfg.SOLVER.BASE_LR = base_lr
     cfg.SOLVER.MAX_ITER = max_iter
-    cfg.MODEL.ROI_HEADS.NUM_CLASSES = num_classes
+    if model_source != "point_rend":
+        cfg.MODEL.ROI_HEADS.NUM_CLASSES = num_classes
     cfg.TEST.EVAL_PERIOD = eval_period
     cfg.RESIZE = resize
     cfg.INPUT.MIN_SIZE_TRAIN = 1000
