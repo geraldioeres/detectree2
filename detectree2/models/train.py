@@ -977,6 +977,7 @@ def setup_cfg(
     num_bands=3,
     class_mapping_file=None,
     visualize_training=False,
+    model_weight="",
 ):
     """Set up config object # noqa: D417.
 
@@ -1004,6 +1005,7 @@ def setup_cfg(
         num_bands: number of bands in the image
         class_mapping_file: path to class mapping file
         visualize_training: whether to visualize training. Images can be accessed via TensorBoard
+        model_weight = the weight of the custom model
     """
 
     # Load the class mapping if provided
@@ -1024,7 +1026,7 @@ def setup_cfg(
         point_rend.add_pointrend_config(cfg)
         cfg.merge_from_file(base_model)
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
-        cfg.MODEL.WEIGHTS = "detectron2://PointRend/InstanceSegmentation/pointrend_rcnn_X_101_32x8d_FPN_3x_coco/28119989/model_final_ba17b9.pkl"
+        cfg.MODEL.WEIGHTS = model_weight
     else:
         cfg.merge_from_file(base_model)
     cfg.DATASETS.TRAIN = trains
